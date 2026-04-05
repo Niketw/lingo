@@ -1,73 +1,36 @@
-# Local Language Learning Buddy 🦉
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A lightweight, local, Duolingo-like language learning application built with Streamlit and Python. It dynamically generates lessons using the Groq API (or runs offline with simulated Mock data) to help you bridge the gap between regional languages and target languages (default: English).
+## Getting Started
 
-## Features
-- **Local Application:** Entirely self-hosted on your machine.
-- **Adapter Architecture:** Choose between Groq API (LLaMA-3 inference) or a Local Mock Engine.
-- **Dynamic Lessons:** Each lesson creates contextual vocabulary and 3 variations of questions (MCQ, translation, fill-in-the-blank).
-- **Gamification:** Tracks your Streak, XP, and Level locally using a lightweight JSON database.
-- **Mobile-Friendly UI:** Designed using Streamlit for clean desktop or mobile browser interaction.
-
-## Architecture
-The application uses the **Adapter Pattern** for the Language core engine. It allows interchangeable use of AI models without rewriting app logic.
-- `LanguageEngine` (Base Class)
-- `GroqLanguageEngine` (Implements Groq API for lesson JSON generation)
-- `MockLanguageEngine` (Implementation for offline development/testing)
-
-## Setup Instructions
-
-1. **Ensure you have Python 3.9+** installed.
-2. **Install requirements:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **Configure Groq API Key (Optional but recommended):**
-   The application requires the Groq API to generate unique lessons dynamically. 
-   Set your API key as an environment variable in your terminal:
-   - On **Windows**: `set GROQ_API_KEY=your_api_key_here`
-   - On **Mac/Linux**: `export GROQ_API_KEY=your_api_key_here`
-   
-   *If the API key is not set, the app will smoothly fallback to the `MockLanguageEngine` for testing.*
-
-## How to Run Locally
-
-Run the Streamlit application from the project root directory:
+First, run the development server:
 
 ```bash
-streamlit run app.py
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-This will automatically open a local web server (usually `http://localhost:8501`) in your default web browser.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Sample JSON Formatting
-The LLM engine strictly responds with predefined JSON. Below is an example structure:
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-```json
-{
-  "vocabulary": [
-    {
-      "word": "Book",
-      "translation": "Kitaab",
-      "pronunciation": "book"
-    }
-  ],
-  "questions": [
-    {
-      "type": "mcq",
-      "question": "How do you say 'Book' in English?",
-      "options": ["Water", "Book", "Food", "Car"],
-      "answer": "Book",
-      "explanation": "'Kitaab' translates to 'Book'."
-    },
-    {
-      "type": "translation",
-      "question": "Translate to English: Mujhe kitaab chahiye.",
-      "answer": "I need a book.",
-      "explanation": "Essential phrase structure."
-    }
-  ]
-}
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Enjoy learning new languages entirely locally!
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

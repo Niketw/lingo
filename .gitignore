@@ -1,39 +1,43 @@
-# Environments
-.env
-.venv
-venv/
-ENV/
-env/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Python compiled files
-__pycache__/
-*.py[cod]
-*$py.class
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# OS generated files
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+*.pem
 
-# Project configs
-.vscode/
-.idea/
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Distribution / packaging
-dist/
-build/
-*.egg-info/
-.eggs/
+# env files (can opt-in for committing if needed)
+.env*
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
+# vercel
+.vercel
 
-# Logs and databases
-*.log
-*.sqlite3
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/app/generated/prisma

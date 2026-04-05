@@ -1,6 +1,0 @@
-streamlit>=1.31.0
-groq>=0.4.2
-python-dotenv>=1.0.1
-pydantic>=2.6.1
-gtts>=2.5.1
-duckduckgo-search>=5.0.0
