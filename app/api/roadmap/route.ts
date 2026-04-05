@@ -1,7 +1,8 @@
-import { groq } from '@ai-sdk/groq';
-import { generateObject } from 'ai';
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  languageAiAdapter,
+} from "@/lib/adapters/groq-language-ai-adapter";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,13 +25,12 @@ Return a JSON object:
 - modules: array of objects (week: 1-8, topic: string, description: brief string, daily_breakdown: array of 7 short actionable bullet points for each day).
 `;
 
-    const { object } = await generateObject({
-      model: groq('llama-3.3-70b-versatile') as any,
+    const roadmap = await languageAiAdapter.generateStructured({
       schema: roadmapSchema,
-      prompt: prompt,
+      prompt,
     });
 
-    return NextResponse.json(object);
+    return NextResponse.json(roadmap);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to generate roadmap" }, { status: 500 });

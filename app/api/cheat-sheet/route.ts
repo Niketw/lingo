@@ -1,6 +1,7 @@
-import { groq } from '@ai-sdk/groq';
-import { generateText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  languageAiAdapter,
+} from "@/lib/adapters/groq-language-ai-adapter";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,10 +17,7 @@ Include:
 Format entirely in Markdown. Make it fun, engaging, and easy to read.
 `;
 
-    const { text } = await generateText({
-      model: groq('llama-3.3-70b-versatile') as any,
-      prompt: prompt,
-    });
+    const text = await languageAiAdapter.generatePlainText(prompt);
 
     return NextResponse.json({ content: text });
   } catch (error) {

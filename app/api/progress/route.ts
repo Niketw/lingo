@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { progressRepositoryAdapter } from "@/lib/adapters/prisma-progress-repository-adapter";
+import { ProgressService } from "@/lib/services/progress-service";
+
+const progressService = new ProgressService(progressRepositoryAdapter);
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
 
   try {
-    let progress = await prisma.progress.findUnique({ where: { userId } });
-    if (!progress) {
-      progress = await prisma.progress.create({
-        data: { userId, xp: 0, streak: 0, level: 1 }
-      });
-    }
+    const progress = await progressService.getOrCreate(userId);
     return NextResponse.json(progress);
   } catch (error) {
     return NextResponse.json({ error: "Db error" }, { status: 500 });
@@ -25,26 +23,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    const current = await prisma.progress.findUnique({ where: { userId } });
-    if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    const newXp = current.xp + xpGained;
-    const newLevel = Math.max(1, Math.floor(newXp / 50));
-
-    // Naive streak update for demonstration (Streamlit just adds 1 sometimes or assumes 1)
-    // We'll increment streak by 1 if updating
-    const progress = await prisma.progress.update({
-      where: { userId },
-      data: {
-        xp: newXp,
-        level: newLevel,
-        streak: current.streak === 0 ? 1 : current.streak, // Simplified streak logic
-        completedLessons: { increment: 1 }
-      }
-    });
+    const progress = await progressService.addLessonXP({ userId, xpGained });
 
     return NextResponse.json(progress);
   } catch (error) {
+    if (error instanceof Error && error.message === "PROGRESS_NOT_FOUND") {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
     return NextResponse.json({ error: "Db error" }, { status: 500 });
   }
 }

@@ -1,7 +1,8 @@
-import { groq } from '@ai-sdk/groq';
-import { generateText, generateObject } from 'ai';
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  languageAiAdapter,
+} from "@/lib/adapters/groq-language-ai-adapter";
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,13 +49,12 @@ Generate a JSON object with:
     const prompt = `You are a language teacher creating a lesson for someone who speaks ${sourceLang} and wants to learn ${targetLang}. The lesson level is ${level} and the topic is "${topic}".
 ${structuralInstructions}`;
 
-    const { object } = await generateObject({
-      model: groq('llama-3.3-70b-versatile') as any,
+    const lesson = await languageAiAdapter.generateStructured({
       schema: lessonSchema,
-      prompt: prompt,
+      prompt,
     });
 
-    return NextResponse.json(object);
+    return NextResponse.json(lesson);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to generate lesson" }, { status: 500 });

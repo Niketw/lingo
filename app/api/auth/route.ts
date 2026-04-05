@@ -1,46 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
+import { passwordHasherAdapter } from "@/lib/adapters/bcrypt-password-hasher-adapter";
+import { userRepositoryAdapter } from "@/lib/adapters/prisma-user-repository-adapter";
+import { AuthService } from "@/lib/services/auth-service";
+
+const authService = new AuthService(userRepositoryAdapter, passwordHasherAdapter);
 
 export async function POST(req: NextRequest) {
   try {
     const { username, password, action } = await req.json();
 
     if (action === "register") {
-      const existingUser = await prisma.user.findUnique({
-        where: { username }
-      });
-      if (existingUser) {
+      const result = await authService.register(username, password);
+      if (!result.ok) {
         return NextResponse.json({ error: "Username already exists" }, { status: 400 });
       }
 
-      const passwordHash = await bcrypt.hash(password, 10);
-      const user = await prisma.user.create({
-        data: {
-          username,
-          passwordHash,
-          progress: {
-            create: {
-              xp: 0,
-              level: 1,
-              streak: 0,
-            }
-          }
-        }
-      });
-      return NextResponse.json({ id: user.id, username: user.username });
+      return NextResponse.json(result.user);
     } else if (action === "login") {
-      const user = await prisma.user.findUnique({
-        where: { username }
-      });
-      if (!user) {
+      const result = await authService.login(username, password);
+      if (!result.ok) {
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
       }
-      const isValid = await bcrypt.compare(password, user.passwordHash);
-      if (!isValid) {
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-      }
-      return NextResponse.json({ id: user.id, username: user.username });
+
+      return NextResponse.json(result.user);
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });

@@ -1,7 +1,8 @@
-import { groq } from '@ai-sdk/groq';
-import { generateObject } from 'ai';
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  languageAiAdapter,
+} from "@/lib/adapters/groq-language-ai-adapter";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,13 +30,12 @@ Return a JSON object with:
 1. "correct": boolean true or false.
 2. "feedback": A very brief, friendly sentence validating or explaining the correction.`;
 
-    const { object } = await generateObject({
-      model: groq('llama-3.3-70b-versatile') as any,
+    const evaluation = await languageAiAdapter.generateStructured({
       schema: evalSchema,
-      prompt: prompt,
+      prompt,
     });
 
-    return NextResponse.json(object);
+    return NextResponse.json(evaluation);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Evaluation failed" }, { status: 500 });
