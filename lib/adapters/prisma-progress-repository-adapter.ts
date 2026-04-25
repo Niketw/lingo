@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import {
   ProgressRecord,
   ProgressRepositoryPort,
+  LeaderboardEntry,
 } from "@/lib/ports/progress-repository-port";
 
 export class PrismaProgressRepositoryAdapter implements ProgressRepositoryPort {
@@ -51,6 +52,22 @@ export class PrismaProgressRepositoryAdapter implements ProgressRepositoryPort {
     });
 
     return progress;
+  }
+
+  async getTopUsers(limit: number): Promise<LeaderboardEntry[]> {
+    const records = await prisma.progress.findMany({
+      take: limit,
+      orderBy: { xp: "desc" },
+      include: { user: true },
+    });
+
+    return records.map((record) => ({
+      userId: record.userId,
+      username: record.user.username,
+      xp: record.xp,
+      level: record.level,
+      streak: record.streak,
+    }));
   }
 }
 

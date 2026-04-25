@@ -7,6 +7,14 @@ export type ProgressRecord = {
   completedLessons: number;
 };
 
+export type LeaderboardEntry = {
+  userId: string;
+  username: string;
+  xp: number;
+  level: number;
+  streak: number;
+};
+
 export interface ProgressRepositoryPort {
   findByUserId(userId: string): Promise<ProgressRecord | null>;
   createInitialForUser(userId: string): Promise<ProgressRecord>;
@@ -14,4 +22,5 @@ export interface ProgressRepositoryPort {
     userId: string;
     xpGained: number;
   }): Promise<ProgressRecord>;
+  getTopUsers(limit: number): Promise<LeaderboardEntry[]>;
 }

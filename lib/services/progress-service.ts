@@ -1,6 +1,7 @@
 import {
   ProgressRecord,
   ProgressRepositoryPort,
+  LeaderboardEntry,
 } from "@/lib/ports/progress-repository-port";
 
 export class ProgressService {
@@ -17,5 +18,9 @@ export class ProgressService {
 
   async addLessonXP(params: { userId: string; xpGained: number }) {
     return this.progressRepository.updateAfterLesson(params);
+  }
+
+  async getLeaderboard(limit: number = 20): Promise<LeaderboardEntry[]> {
+    return this.progressRepository.getTopUsers(limit);
   }
 }
