@@ -12,6 +12,7 @@ export default function VocabIntroPage() {
   const store = useUserStore();
   const { lessonData } = useLessonStore();
   const [mounted, setMounted] = useState(false);
+  const [isPlayingAudioMap, setIsPlayingAudioMap] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!store.userId) router.replace("/");
@@ -21,43 +22,45 @@ export default function VocabIntroPage() {
 
   if (!mounted || !lessonData) return null;
 
-  const playAudio = (text: string) => {
-    if (!("speechSynthesis" in window)) return;
+  const playAudio = async (text: string, idx: number) => {
+    if (isPlayingAudioMap[idx]) return;
+    setIsPlayingAudioMap(prev => ({ ...prev, [idx]: true }));
     
-    // Cancel any ongoing speech to prevent queuing lag
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Comprehensive list of languages supported by SpeechSynthesis APIs
     const langMap: Record<string, string> = {
-      English: "en-US", Spanish: "es-ES", French: "fr-FR", German: "de-DE", 
-      Japanese: "ja-JP", Korean: "ko-KR", Italian: "it-IT", 
-      Hindi: "hi-IN", Marathi: "mr-IN", Tamil: "ta-IN", Bengali: "bn-IN", 
-      Gujarati: "gu-IN", Telugu: "te-IN", Kannada: "kn-IN", Malayalam: "ml-IN",
-      Chinese: "zh-CN", Mandarin: "zh-CN", Russian: "ru-RU", Portuguese: "pt-BR", 
-      Arabic: "ar-SA", Dutch: "nl-NL", Polish: "pl-PL", Turkish: "tr-TR", 
-      Swedish: "sv-SE", Indonesian: "id-ID", Vietnamese: "vi-VN",
-      Thai: "th-TH", Greek: "el-GR", Hebrew: "he-IL",
-      Danish: "da-DK", Finnish: "da-DK"
+      English: "en", Spanish: "es", French: "fr", German: "de", 
+      Japanese: "ja", Korean: "ko", Italian: "it", 
+      Hindi: "hi", Marathi: "mr", Tamil: "ta", Bengali: "bn", 
+      Gujarati: "gu", Telugu: "te", Kannada: "kn", Malayalam: "ml",
+      Chinese: "zh-CN", Mandarin: "zh-CN", Russian: "ru", Portuguese: "pt", 
+      Arabic: "ar", Dutch: "nl", Polish: "pl", Turkish: "tr", 
+      Swedish: "sv", Indonesian: "id", Vietnamese: "vi",
+      Thai: "th", Greek: "el", Hebrew: "he",
+      Danish: "da", Finnish: "fi"
     };
+    const langCode = langMap[store.targetLang] || "en";
 
-    const targetLangCode = langMap[store.targetLang] || "";
-    if (targetLangCode) {
-      utterance.lang = targetLangCode;
-    }
-
-    // Load available voices and try to match the exact language code
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0 && targetLangCode) {
-      const matchedVoice = voices.find(voice => voice.lang === targetLangCode) 
-        || voices.find(voice => voice.lang.startsWith(targetLangCode.split('-')[0]));
-      if (matchedVoice) {
-        utterance.voice = matchedVoice;
+    try {
+      const res = await fetch("/api/audio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, lang: langCode })
+      });
+      if (res.ok) {
+        const audioBlob = await res.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.onended = () => {
+          setIsPlayingAudioMap(prev => ({ ...prev, [idx]: false }));
+          URL.revokeObjectURL(audioUrl);
+        };
+        audio.play();
+      } else {
+        setIsPlayingAudioMap(prev => ({ ...prev, [idx]: false }));
       }
+    } catch (e) {
+      console.error(e);
+      setIsPlayingAudioMap(prev => ({ ...prev, [idx]: false }));
     }
-
-    window.speechSynthesis.speak(utterance);
   };
 
   const vocab = lessonData.vocabulary || [];
@@ -81,10 +84,11 @@ export default function VocabIntroPage() {
                 {item.pronunciation && <p className="text-gray-500 italic">/{item.pronunciation}/</p>}
               </div>
               <button 
-                className="p-3 bg-[#131F24] border-2 border-border border-b-4 rounded-xl text-primary hover:bg-[#202F36] active:translate-y-1 active:border-b-2 transition-all"
-                onClick={() => playAudio(item.word)}
+                className={`p-3 bg-[#131F24] border-2 border-border border-b-4 rounded-xl text-primary hover:bg-[#202F36] active:translate-y-1 active:border-b-2 transition-all ${isPlayingAudioMap[idx] ? 'opacity-50 cursor-not-allowed text-gray-500' : ''}`}
+                onClick={() => playAudio(item.word, idx)}
+                disabled={isPlayingAudioMap[idx]}
               >
-                <Volume2 size={28} />
+                {isPlayingAudioMap[idx] ? <span className="text-xl">⏳</span> : <Volume2 size={28} />}
               </button>
             </div>
           ))}

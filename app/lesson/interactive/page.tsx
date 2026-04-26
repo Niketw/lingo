@@ -15,6 +15,7 @@ export default function InteractiveLessonPage() {
   const [mounted, setMounted] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [evaluating, setEvaluating] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   useEffect(() => {
     if (!store.userId) router.replace("/");
@@ -73,39 +74,45 @@ export default function InteractiveLessonPage() {
     nextQuestion();
   };
 
-  const playAudio = (text: string) => {
-    if (!("speechSynthesis" in window)) return;
-    
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+  const playAudio = async (text: string) => {
+    if (isPlayingAudio) return;
+    setIsPlayingAudio(true);
     
     const langMap: Record<string, string> = {
-      English: "en-US", Spanish: "es-ES", French: "fr-FR", German: "de-DE", 
-      Japanese: "ja-JP", Korean: "ko-KR", Italian: "it-IT", 
-      Hindi: "hi-IN", Marathi: "mr-IN", Tamil: "ta-IN", Bengali: "bn-IN", 
-      Gujarati: "gu-IN", Telugu: "te-IN", Kannada: "kn-IN", Malayalam: "ml-IN",
-      Chinese: "zh-CN", Mandarin: "zh-CN", Russian: "ru-RU", Portuguese: "pt-BR", 
-      Arabic: "ar-SA", Dutch: "nl-NL", Polish: "pl-PL", Turkish: "tr-TR", 
-      Swedish: "sv-SE", Indonesian: "id-ID", Vietnamese: "vi-VN",
-      Thai: "th-TH", Greek: "el-GR", Hebrew: "he-IL",
-      Danish: "da-DK", Finnish: "fi-FI"
+      English: "en", Spanish: "es", French: "fr", German: "de", 
+      Japanese: "ja", Korean: "ko", Italian: "it", 
+      Hindi: "hi", Marathi: "mr", Tamil: "ta", Bengali: "bn", 
+      Gujarati: "gu", Telugu: "te", Kannada: "kn", Malayalam: "ml",
+      Chinese: "zh-CN", Mandarin: "zh-CN", Russian: "ru", Portuguese: "pt", 
+      Arabic: "ar", Dutch: "nl", Polish: "pl", Turkish: "tr", 
+      Swedish: "sv", Indonesian: "id", Vietnamese: "vi",
+      Thai: "th", Greek: "el", Hebrew: "he",
+      Danish: "da", Finnish: "fi"
     };
+    const langCode = langMap[store.targetLang] || "en";
 
-    const targetLangCode = langMap[store.targetLang] || "";
-    if (targetLangCode) {
-      utterance.lang = targetLangCode;
-    }
-
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0 && targetLangCode) {
-      const matchedVoice = voices.find(voice => voice.lang === targetLangCode) 
-        || voices.find(voice => voice.lang.startsWith(targetLangCode.split('-')[0]));
-      if (matchedVoice) {
-        utterance.voice = matchedVoice;
+    try {
+      const res = await fetch("/api/audio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, lang: langCode })
+      });
+      if (res.ok) {
+        const audioBlob = await res.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.onended = () => {
+          setIsPlayingAudio(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+        audio.play();
+      } else {
+        setIsPlayingAudio(false);
       }
+    } catch (e) {
+      console.error(e);
+      setIsPlayingAudio(false);
     }
-
-    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -120,10 +127,11 @@ export default function InteractiveLessonPage() {
           <h2 className="text-4xl font-extrabold m-0">{q.question}</h2>
           <button 
             onClick={() => playAudio(q.question)}
-            className="p-2 px-3 bg-[#1CB0F6] hover:bg-[#1899D6] active:bg-[#147eb1] rounded-xl text-white font-bold transition-all border-b-4 border-[#1899D6] active:border-b-0 active:translate-y-1"
+            className={`p-2 px-3 bg-[#1CB0F6] hover:bg-[#1899D6] active:bg-[#147eb1] rounded-xl text-white font-bold transition-all border-b-4 border-[#1899D6] active:border-b-0 active:translate-y-1 ${isPlayingAudio ? 'opacity-50 cursor-not-allowed' : ''}`}
             title="Play Audio"
+            disabled={isPlayingAudio}
           >
-            🔊
+            {isPlayingAudio ? '⏳' : '🔊'}
           </button>
         </div>
         

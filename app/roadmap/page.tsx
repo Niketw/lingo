@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import ReactMarkdown from "react-markdown";
 
 export default function RoadmapPage() {
   const router = useRouter();
@@ -79,11 +80,15 @@ export default function RoadmapPage() {
                 
                 {expandedWeek === m.week && (
                   <div className="p-4 border-t-2 border-border bg-[#1A252A]">
-                    <p className="mb-4 text-gray-300 font-bold">{m.description}</p>
+                    <div className="mb-4 text-gray-300 font-bold prose prose-invert max-w-none">
+                      <ReactMarkdown>{m.description}</ReactMarkdown>
+                    </div>
                     <h4 className="font-extrabold mb-2 text-[#1CB0F6]">Daily Plan:</h4>
                     <ul className="list-disc pl-6 mb-6 space-y-2 font-bold text-gray-300 text-sm">
                       {m.daily_breakdown.map((d: string, i: number) => (
-                        <li key={i}>{d}</li>
+                        <li key={i}>
+                          <div className="prose prose-invert max-w-none"><ReactMarkdown>{d}</ReactMarkdown></div>
+                        </li>
                       ))}
                     </ul>
 

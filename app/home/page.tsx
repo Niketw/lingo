@@ -84,7 +84,9 @@ export default function HomePage() {
 
       <div className="grid grid-cols-2 gap-4">
         <Button variant="default" onClick={() => router.push("/chat")}>💬 Chat Practice</Button>
-        <Button variant="secondary" onClick={() => router.push("/onboarding")}>Change Language 🌍</Button>        <Button variant="outline" className="col-span-2" onClick={() => router.push("/leaderboard")}>ðŸ † Leaderboard</Button>      </div>
+        <Button variant="secondary" onClick={() => router.push("/onboarding")}>Change Language 🌍</Button>
+        <Button variant="secondary" className="col-span-2" onClick={() => router.push("/leaderboard")}>🏆 Leaderboard</Button>
+      </div>
     </div>
   );
 }
